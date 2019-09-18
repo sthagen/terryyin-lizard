@@ -11,6 +11,8 @@ class SwiftReader(CodeReader, CCppCommentsMixin):
 
     ext = ['swift']
     language_names = ['swift']
+    _conditions = set(['if', 'for', 'while', '&&', '||', '?', 'catch',
+                      'case', 'guard'])
 
     def __init__(self, context):
         super(SwiftReader, self).__init__(context)
@@ -24,6 +26,20 @@ class SwiftReader(CodeReader, CCppCommentsMixin):
             r"|\w+\!" +
             r"|\?\?" +
             addition)
+
+    def preprocess(self, tokens):
+        tokens = list(t for t in tokens if not t.isspace() or t == '\n')
+
+        def replace_label(tokens, target, replace):
+            for i in range(0, len(tokens) - len(target)):
+                if tokens[i:i + len(target)] == target:
+                    for j in range(0, len(replace)):
+                        tokens[i + j] = replace[j]
+            return tokens
+        for c in (c for c in self.conditions if c.isalpha()):
+            tokens = replace_label(tokens, ["(", c, ":"], ["(", "_" + c, ":"])
+            tokens = replace_label(tokens, [",", c, ":"], [",", "_" + c, ":"])
+        return tokens
 
 
 class SwiftStates(CodeStateMachine):  # pylint: disable=R0903

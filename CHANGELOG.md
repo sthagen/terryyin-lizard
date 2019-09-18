@@ -1,5 +1,28 @@
 # Change Log
 
+## 1.16.6
+
+Bug fixes:
+
+'for' keyword in Swift label should not be counted as ccn.
+
+'guard' keyword should be counted.
+
+'-o' or '--output_file' parameter added.
+
+
+## 1.16.3
+
+Fix the performance issue
+
+## 1.16.1
+
+Add Lua to the languages.
+
+## 1.15.7
+
+Fix a bug in MSVS format output.
+
 ## 1.15.6
 
 Minor fix for the average NCSS (lines of code) in the XML output.

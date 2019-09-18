@@ -30,6 +30,7 @@ A list of supported languages:
 -  Scala
 -  GDScript
 -  Golang
+-  Lua
 
 By default lizard will search for any source code that it knows and mix
 all the results together. This might not be what you want. You can use
@@ -328,7 +329,7 @@ Lizard may choose not to deal with some advanced or complicated language feature
 
 
 Literatures Referring to Lizard
-------------------------------
+-------------------------------
 
 Lizard is often used in software related researches. If you used it to support your work, you may contact the lizard author to add your work in the following list.
 

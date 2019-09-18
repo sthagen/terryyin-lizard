@@ -3,6 +3,7 @@ Base class for all language parsers
 '''
 
 import re
+from copy import copy
 
 
 class CodeStateMachine(object):
@@ -81,12 +82,13 @@ class CodeReader(object):
     ext = []
     languages = None
     extra_subclasses = set()
-    conditions = set(['if', 'for', 'while', '&&', '||', '?', 'catch',
+    _conditions = set(['if', 'for', 'while', '&&', '||', '?', 'catch',
                       'case'])
 
     def __init__(self, context):
         self.parallel_states = []
         self.context = context
+        self.conditions = copy(self._conditions)
 
     @classmethod
     def match_filename(cls, filename):
@@ -105,18 +107,19 @@ class CodeReader(object):
         def _generate_tokens(source_code, addition):
             # DO NOT put any sub groups in the regex. Good for performance
             _until_end = r"(?:\\\n|[^\n])*"
-            combined_symbols = ["||", "&&", "===", "!==", "==", "!=", "<=",
-                                ">=", "->",
+            combined_symbols = ["<<=", ">>=", "||", "&&", "===", "!==",
+                                "==", "!=", "<=", ">=", "->", "=>",
                                 "++", "--", '+=', '-=',
+                                "+", "-", '*', '/',
                                 '*=', '/=', '^=', '&=', '|=', "..."]
             token_pattern = re.compile(
                 r"(?:" +
-                r"/\*.*?\*/" +
+                r"\/\*.*?\*\/" +
                 addition +
                 r"|\w+" +
                 r"|\"(?:\\.|[^\"\\])*\"" +
                 r"|\'(?:\\.|[^\'\\])*?\'" +
-                r"|//" + _until_end +
+                r"|\/\/" + _until_end +
                 r"|\#" +
                 r"|:=|::|\*\*" +
                 r"|\<\s*\?\s*\>" +

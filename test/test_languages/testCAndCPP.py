@@ -608,9 +608,6 @@ int mySecondFunction()
         self.assertEqual('mySecondFunction', result[1].name)
 
 
-
-
-
 class Test_Big(unittest.TestCase):
 
     def test_trouble(self):
@@ -634,7 +631,7 @@ class Test_Big(unittest.TestCase):
         """
         result = get_cpp_function_list(code)
         self.assertEqual(1, len(result))
-        self.assertEqual(2, result[0].cyclomatic_complexity)
+        self.assertEqual(3, result[0].cyclomatic_complexity)
 
 
 
