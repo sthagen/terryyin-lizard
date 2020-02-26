@@ -1,5 +1,22 @@
 # Change Log
 
+## 1.17.3
+
+Bug fixing in Lua and Scala support
+
+## 1.17.2
+
+Fix missing file when install
+
+## 1.17.1
+
+Fix HTML Output template problem.
+
+## 1.17.0
+
+Support JavaScript with ES6 and JSX.
+Support Rust
+
 ## 1.16.6
 
 Bug fixes:

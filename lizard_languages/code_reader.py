@@ -19,6 +19,9 @@ class CodeStateMachine(object):
         self.rut_tokens = []
         self.br_count = 0
 
+    def statemachine_clone(self):
+        return self.__class__(self.context)
+
     def next(self, state, token=None):
         self._state = state
         if token is not None:
@@ -29,8 +32,9 @@ class CodeStateMachine(object):
             return
         self.next(state, token)
 
-    def sm_return(self):
+    def statemachine_return(self):
         self.to_exit = True
+        self.statemachine_before_return()
 
     def sub_state(self, state, callback=None, token=None):
         self.saved_state = self._state
@@ -47,6 +51,9 @@ class CodeStateMachine(object):
             return True
 
     def _state_global(self, token):
+        pass
+
+    def statemachine_before_return(self):
         pass
 
     @staticmethod
@@ -74,7 +81,7 @@ class CodeStateMachine(object):
         return decorator
 
 
-class CodeReader(object):
+class CodeReader:
     ''' CodeReaders are used to parse function structures from
     code of different
     language. Each language will need a subclass of CodeReader.  '''
@@ -145,7 +152,7 @@ class CodeReader(object):
             if macro:
                 yield macro
 
-        return [t for t in _generate_tokens(source_code, addition)]
+        return _generate_tokens(source_code, addition)
 
     def __call__(self, tokens, reader):
         self.context = reader.context
@@ -153,6 +160,8 @@ class CodeReader(object):
             for state in self.parallel_states:
                 state(token)
             yield token
+        for state in self.parallel_states:
+            state.statemachine_before_return()
         self.eof()
 
     def eof(self):

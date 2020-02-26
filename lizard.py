@@ -63,7 +63,7 @@ def analyze(paths, exclude_pattern=None, threads=1, exts=None,
 
 
 def analyze_files(files, threads=1, exts=None):
-    extensions = exts or []
+    extensions = exts or get_extensions([])
     file_analyzer = FileAnalyzer(extensions)
     result = map_files_to_analyzer(files, file_analyzer, threads)
     for extension in extensions:
@@ -405,6 +405,7 @@ class FileInfoBuilder(object):
         self.newline = True
         self.global_pseudo_function = FunctionInfo('*global*', filename, 0)
         self.current_function = self.global_pseudo_function
+        self.stacked_functions = []
         self._nesting_stack = NestingStack()
 
     def __getattr__(self, attr):
@@ -442,17 +443,18 @@ class FileInfoBuilder(object):
 
     def confirm_new_function(self):
         self.start_new_function_nesting(self.current_function)
-        self.reset_complexity()
+        self.current_function.cyclomatic_complexity = 1
 
-    def start_new_function(self, name):
+    def restart_new_function(self, name):
         self.try_new_function(name)
         self.confirm_new_function()
 
+    def push_new_function(self, name):
+        self.stacked_functions.append(self.current_function)
+        self.restart_new_function(name)
+
     def add_condition(self, inc=1):
         self.current_function.cyclomatic_complexity += inc
-
-    def reset_complexity(self):
-        self.current_function.cyclomatic_complexity = 1
 
     def add_to_long_function_name(self, app):
         self.current_function.add_to_long_name(app)
@@ -467,7 +469,10 @@ class FileInfoBuilder(object):
         if not self.forgive:
             self.fileinfo.function_list.append(self.current_function)
         self.forgive = False
-        self.current_function = self.global_pseudo_function
+        if self.stacked_functions:
+            self.current_function = self.stacked_functions.pop()
+        else:
+            self.current_function = self.global_pseudo_function
 
 
 def preprocessing(tokens, reader):
@@ -939,6 +944,8 @@ def parse_args(argv):
         opt.thresholds["max_nested_structures"] = opt.NS
     if "length" not in opt.thresholds:
         opt.thresholds["length"] = opt.length
+    if "nloc" not in opt.thresholds:
+        opt.thresholds["nloc"] = 1000000
     if "parameter_count" not in opt.thresholds:
         opt.thresholds["parameter_count"] = opt.arguments
     if opt.output_file:
