@@ -3,6 +3,7 @@
 from .clike import CLikeReader
 from .java import JavaReader
 from .javascript import JavaScriptReader
+from .kotlin import KotlinReader
 from .python import PythonReader
 from .objc import ObjCReader
 from .ttcn import TTCNReader
@@ -16,6 +17,7 @@ from .go import GoReader
 from .lua import LuaReader
 from .rust import RustReader
 from .typescript import TypeScriptReader
+from .fortran import FortranReader
 
 
 def languages():
@@ -35,7 +37,9 @@ def languages():
         GoReader,
         LuaReader,
         RustReader,
-        TypeScriptReader
+        TypeScriptReader,
+        FortranReader,
+        KotlinReader
     ]
 
 
