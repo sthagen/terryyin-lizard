@@ -1,15 +1,15 @@
 import unittest
-from lizard import  analyze_file, FileAnalyzer, get_extensions
-from lizard_languages import JSXReader
+from lizard import analyze_file, FileAnalyzer, get_extensions
+from lizard_languages import TSXReader
 
 
-def get_jsx_function_list(source_code):
-    return analyze_file.analyze_source_code("a.jsx", source_code).function_list
+def get_tsx_function_list(source_code):
+    return analyze_file.analyze_source_code("a.tsx", source_code).function_list
 
-class Test_tokenizing_JSX(unittest.TestCase):
+class Test_tokenizing_TSX(unittest.TestCase):
 
     def check_tokens(self, expect, source):
-        tokens = list(JSXReader.generate_tokens(source))
+        tokens = list(TSXReader.generate_tokens(source))
         self.assertEqual(expect, tokens)
 
     def test_simple_standalone(self):
@@ -46,10 +46,10 @@ class Test_tokenizing_JSX(unittest.TestCase):
         self.check_tokens(['data', ' ', '=>', '(', ')', '<StaticQuery render={} />'], '<StaticQuery render={data =>()} />')
 
 
-class Test_parser_for_JavaScript_X(unittest.TestCase):
+class Test_parser_for_TypeScript_X(unittest.TestCase):
 
     def test_simple_function(self):
-        functions = get_jsx_function_list("x=>x")
+        functions = get_tsx_function_list("x=>x")
         self.assertEqual("(anonymous)", functions[0].name)
 
     def test_complicated(self):
@@ -57,6 +57,15 @@ class Test_parser_for_JavaScript_X(unittest.TestCase):
           <StaticQuery render={data => ()} />
         '''
 
-        functions = get_jsx_function_list(code)
+        functions = get_tsx_function_list(code)
         self.assertEqual("(anonymous)", functions[0].name)
 
+    def test_type_annotation(self):
+        code = '''
+          const MyComponent: React.FC = () => {
+            return <div>Hello</div>;
+          }
+        '''
+        functions = get_tsx_function_list(code)
+        self.assertEqual("MyComponent", functions[0].name)
+        self.assertEqual(1, functions[0].cyclomatic_complexity) 
