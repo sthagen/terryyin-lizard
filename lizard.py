@@ -298,8 +298,7 @@ class FunctionInfo(Nesting):  # pylint: disable=R0902
         return self.name.split('::')[-1]
 
     location = property(lambda self:
-                        " %(name)s@%(start_line)s-%(end_line)s@%(filename)s"
-                        % self.__dict__)
+                        f" {self.name}@{self.start_line}-{self.end_line}@{self.filename}")
 
     parameter_count = property(lambda self: len(self.parameters))
 
@@ -723,17 +722,13 @@ class OutputScheme(object):
             if e.get("avg_caption", None)])
 
     def clang_warning_format(self):
-        return (
-            "{f.filename}:{f.start_line}: warning: {f.name} has " +
-            ", ".join([
-                "{{f.{ext[value]}}} {caption}"
-                .format(ext=e, caption=e['caption'].strip())
-                for e in self.items[:-1]
-                ]))
+        return ("{f.filename}:{f.start_line}: warning: {f.name} has {f.nloc} NLOC, "
+                "{f.cyclomatic_complexity} CCN, {f.token_count} token, {f.parameter_count} PARAM, "
+                "{f.length} length, {f.max_nesting_depth} ND")
 
     def msvs_warning_format(self):
         return (
-            "{f.filename}({f.start_line}): warning: {f.name} has " +
+            "{f.filename}({f.start_line}): warning: {f.name} ({f.long_name}) has " +
             ", ".join([
                 "{{f.{ext[value]}}} {caption}"
                 .format(ext=e, caption=e['caption'].strip())
@@ -901,14 +896,43 @@ def md5_hash_file(full_path_name):
 def get_all_source_files(paths, exclude_patterns, lans):
     '''
     Function counts md5 hash for the given file and checks if it isn't a
-    duplicate using set of hashes for previous files '''
+    duplicate using set of hashes for previous files.
+    
+    If a .gitignore file is found in any of the given paths, it will be used
+    to filter out files that match the gitignore patterns.
+    '''
     hash_set = set()
+    gitignore_spec = None
+    base_path = None
+
+    def _load_gitignore():
+        nonlocal gitignore_spec, base_path
+        try:
+            import pathspec
+            for path in paths:
+                gitignore_path = os.path.join(path, '.gitignore')
+                if os.path.exists(gitignore_path):
+                    with open(gitignore_path, 'r') as gitignore_file:
+                        # Read lines and strip whitespace and empty lines
+                        patterns = [line.strip() for line in gitignore_file.readlines()]
+                        patterns = [p for p in patterns if p and not p.startswith('#')]
+                        gitignore_spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+                        base_path = path
+                    break
+        except ImportError:
+            pass
 
     def _support(reader):
         return not lans or set(lans).intersection(
             reader.language_names)
 
     def _validate_file(pathname):
+        if gitignore_spec is not None and base_path is not None:
+            rel_path = os.path.relpath(pathname, base_path)
+            # Normalize path separators for consistent matching
+            rel_path = rel_path.replace(os.sep, '/')
+            if gitignore_spec.match_file(rel_path):
+                return False
         return (
             pathname in paths or (
                 get_reader_for(pathname) and
@@ -931,6 +955,7 @@ def get_all_source_files(paths, exclude_patterns, lans):
                     for filename in files:
                         yield os.path.join(root, filename)
 
+    _load_gitignore()
     return filter(_validate_file, all_listed_files(paths))
 
 
@@ -972,7 +997,7 @@ def parse_args(argv):
         if inferred_printer:
             if not opt.printer:
                 opt.printer = inferred_printer
-            else:
+            elif opt.printer != inferred_printer:
                 msg = "Warning: overriding output file extension.\n"
                 sys.stderr.write(msg)
     return opt

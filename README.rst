@@ -22,6 +22,7 @@ A list of supported languages:
 -  C# (C Sharp)
 -  JavaScript (With ES6 and JSX)
 -  TypeScript (With TSX)
+-  VueJS
 -  Objective-C
 -  Swift
 -  Python
@@ -105,6 +106,13 @@ Exclude anything in the tests folder:
 
     lizard mySource/ -x"./tests/*"
 
+Use .gitignore file:
+
+::
+
+    lizard mySource/
+
+If there is a .gitignore file in the given path, lizard will automatically use it as an additional filter to exclude files that match the gitignore patterns. This is useful when you want to analyze only the tracked files in your git repository.
 
 Options
 ~~~~~~~

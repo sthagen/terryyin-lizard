@@ -11,8 +11,18 @@ class JavaScriptStyleLanguageStates(CodeStateMachine):  # pylint: disable=R0903
         self.last_tokens = ''
         self.function_name = ''
         self.started_function = None
+        self.as_object = False
 
     def _state_global(self, token):
+        if self.as_object:
+            if token == ':':
+                self.function_name = self.last_tokens
+                return
+            elif token == '(':
+                self._function(self.last_tokens)
+                self.next(self._function, token)
+                return
+
         if token in '.':
             self._state = self._field
             self.last_tokens += token
@@ -29,11 +39,11 @@ class JavaScriptStyleLanguageStates(CodeStateMachine):  # pylint: disable=R0903
             self.function_name = self.last_tokens
         elif token == "(":
             self.sub_state(
-                JavaScriptStyleLanguageStates(self.context))
+                self.__class__(self.context))
         elif token in '{':
             if self.started_function:
                 self.sub_state(
-                    JavaScriptStyleLanguageStates(self.context),
+                    self.__class__(self.context),
                     self._pop_function_from_stack)
             else:
                 self.read_object()
@@ -46,7 +56,12 @@ class JavaScriptStyleLanguageStates(CodeStateMachine):  # pylint: disable=R0903
         self.last_tokens = token
 
     def read_object(self):
-        self.sub_state(ES6ObjectStates(self.context))
+        def callback():
+            self.next(self._state_global)
+
+        object_reader = self.__class__(self.context)
+        object_reader.as_object = True
+        self.sub_state(object_reader, callback)
 
     def statemachine_before_return(self):
         self._pop_function_from_stack()
@@ -63,16 +78,14 @@ class JavaScriptStyleLanguageStates(CodeStateMachine):  # pylint: disable=R0903
             return
 
         self.sub_state(
-            JavaScriptStyleLanguageStates(self.context),
-            callback)
+            self.__class__(self.context), callback)
 
     def _expecting_statement_or_block(self, token):
         def callback():
             self.next(self._state_global)
         if token == "{":
             self.sub_state(
-                JavaScriptStyleLanguageStates(self.context),
-                callback)
+                self.__class__(self.context), callback)
         else:
             self.next(self._state_global, token)
 
@@ -116,17 +129,3 @@ class JavaScriptStyleLanguageStates(CodeStateMachine):  # pylint: disable=R0903
         if token != '{':
             self.started_function = None
         self.next(self._state_global, token)
-
-
-class ES6ObjectStates(JavaScriptStyleLanguageStates):  # pylint: disable=R0903
-    def __init__(self, context):
-        super(ES6ObjectStates, self).__init__(context)
-
-    def _state_global(self, token):
-        if token == ':':
-            self.function_name = self.last_tokens
-        elif token == '(':
-            self._function(self.last_tokens)
-            self.next(self._function, token)
-        else:
-            super(ES6ObjectStates, self)._state_global(token)

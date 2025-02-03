@@ -23,8 +23,7 @@ class Test_parser_for_TypeScript(unittest.TestCase):
                 console.log("This is my warning message");
             }
         """)
-        self.assertEqual(1, len(functions))
-        self.assertEqual("warnUser", functions[0].name)
+        self.assertEqual(["warnUser"], [f.name for f in functions])
 
     def test_simple_function_with_no_return_type(self):
         functions = get_ts_function_list("""
@@ -37,13 +36,18 @@ class Test_parser_for_TypeScript(unittest.TestCase):
 
     def test_function_declare(self):
         functions = get_ts_function_list("""
+            declare function create(o): void;
+        """)
+        self.assertEqual([], [f.name for f in functions])
+
+    def test_function_declare_and_a_function(self):
+        functions = get_ts_function_list("""
             declare function create(o: object | null): void;
             function warnUser() {
                 console.log("This is my warning message");
             }
         """)
-        self.assertEqual(1, len(functions))
-        self.assertEqual("warnUser", functions[0].name)
+        self.assertEqual(["warnUser"], [f.name for f in functions])
 
     def test_function_with_default(self):
         functions = get_ts_function_list("""
@@ -53,7 +57,7 @@ class Test_parser_for_TypeScript(unittest.TestCase):
             }
         }
         """)
-        self.assertEqual(1, len(functions))
+        self.assertEqual(["x"], [f.name for f in functions])
         self.assertEqual(2, functions[0].cyclomatic_complexity)
 
     def test_object_method(self):
@@ -64,9 +68,8 @@ class Test_parser_for_TypeScript(unittest.TestCase):
             }
         }
         """)
-        self.assertEqual(1, len(functions))
+        self.assertEqual(["test"], [f.name for f in functions])
         self.assertEqual(1, functions[0].cyclomatic_complexity)
-        self.assertEqual("test", functions[0].name)
 
     def test_nested_object_method(self):
         functions = get_ts_function_list("""
@@ -95,6 +98,41 @@ class Test_parser_for_TypeScript(unittest.TestCase):
         self.assertEqual(["test"], [f.name for f in functions])
         self.assertEqual(1, functions[0].cyclomatic_complexity)
 
+    def test_multiple_classes_with_methods(self):
+        functions = get_ts_function_list("""
+            class FirstClass {
+                doSomething() {
+                    return "first";
+                }
+            }
+            
+            class SecondClass {
+                doAnotherThing() {
+                    return "second";
+                }
+            }
+        """)
+        self.assertEqual(["doSomething", "doAnotherThing"], [f.name for f in functions])
+        self.assertEqual(1, functions[0].cyclomatic_complexity)
+        self.assertEqual(1, functions[1].cyclomatic_complexity)
+
+    def test_multiple_objects_with_methods(self):
+        functions = get_ts_function_list("""
+            const firstObject = {
+                doSomething() {
+                    return "first";
+                }
+            }
+            
+            const secondObject = {
+                doAnotherThing() {
+                    return "second";
+                }
+            }
+        """)
+        self.assertEqual(["doSomething", "doAnotherThing"], [f.name for f in functions])
+        self.assertEqual(1, functions[0].cyclomatic_complexity)
+        self.assertEqual(1, functions[1].cyclomatic_complexity)
 
     def test_multiple_functions(self):
         code = '''
@@ -118,5 +156,4 @@ class Test_parser_for_TypeScript(unittest.TestCase):
         functions = get_ts_function_list(code)
         self.assertEqual(["helper1", "method1", "method2"], [f.name for f in functions])
         self.assertEqual(2, functions[2].cyclomatic_complexity)
-
 

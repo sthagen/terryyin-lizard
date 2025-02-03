@@ -8,7 +8,7 @@ from functools import reduce
 from operator import or_
 
 
-class CodeStateMachine(object):
+class CodeStateMachine:
     """ the state machine """
     # pylint: disable=R0903
     # pylint: disable=R0902
@@ -50,6 +50,7 @@ class CodeStateMachine(object):
             self.next(self.saved_state)
             if self.callback:
                 self.callback()
+                self.callback = None
         self.last_token = token
         if self.to_exit:
             return True
