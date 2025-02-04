@@ -37,10 +37,6 @@ class JSTokenizer(Tokenizer):
         self.depth = 1
 
     def process_token(self, token):
-        if token == "<":
-            from .jsx import XMLTagWithAttrTokenizer  # Import only when needed
-            self.sub_tokenizer = XMLTagWithAttrTokenizer()
-            return
         if token == "{":
             self.depth += 1
         elif token == "}":
@@ -115,10 +111,18 @@ class TypeScriptTypeAnnotationStates(CodeStateMachine):
             self.next(self._state_simple_type, token)
 
     def _state_simple_type(self, token):
-        if token in '{=;':
+        print(token)
+        if token == '<':
+            print(token)
+            self.next(self._state_generic_type, token)
+        elif token in '{=;':
             self.saved_token = token
             self.statemachine_return()
 
     @CodeStateMachine.read_inside_brackets_then("{}")
     def _inline_type_annotation(self, _):
+        self.statemachine_return()
+
+    @CodeStateMachine.read_inside_brackets_then("<>")
+    def _state_generic_type(self, token):
         self.statemachine_return()
