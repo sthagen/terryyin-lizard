@@ -12,6 +12,21 @@ def get_java_function_list(source_code):
 
 class TestJava(unittest.TestCase):
 
+    def test_my_code(self):
+        code = """
+public String[] funcA() {
+    return properties.stream().toArray(String[]::new);
+}
+
+public String funcB() {
+    return "something";
+}
+"""
+        result = get_java_function_list(code)
+        self.assertEqual(2, len(result))
+        self.assertEqual('funcA()', result[0].long_name)
+        self.assertEqual('funcB()', result[1].long_name)
+
     def test_function_with_throws(self):
         result = get_java_function_list("void fun() throws e1, e2{}")
         self.assertEqual(1, len(result))
