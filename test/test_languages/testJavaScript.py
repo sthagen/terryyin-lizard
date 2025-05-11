@@ -32,15 +32,15 @@ class Test_tokenizing_JavaScript(unittest.TestCase):
         self.check_tokens(['/**a/*/'], '''/**a/*/''')
 
     def test_tokenizing_pattern(self):
-        self.check_tokens(['/\//'], r'''/\//''')
+        self.check_tokens([r'/\//'], r'/\//')
 
     def test_tokenizing_javascript_multiple_line_string(self):
         self.check_tokens(['"aaa\\\nbbb"'], '"aaa\\\nbbb"')
 
-    def xtest_tokenizing_template_literal_with_expression(self):
-        self.check_tokens(['`hello ${', 'name', '}`'], '`hello ${name}`')
+    def test_tokenizing_template_literal_with_expression(self):
+        self.check_tokens(['`hello `', '${', 'name', '}'], '`hello ${name}`')
 
-    def xtest_tokenizing_template_literal_multiline(self):
+    def test_tokenizing_template_literal_multiline(self):
         self.check_tokens(['`hello\nworld`'], '`hello\nworld`')
 
 class Test_parser_for_JavaScript(unittest.TestCase):
@@ -97,35 +97,35 @@ class Test_parser_for_JavaScript(unittest.TestCase):
         functions = get_js_function_list("{}")
         self.assertEqual(0, len(functions))
 
-    def xtest_object_method_shorthand(self):
+    def test_object_method_shorthand(self):
         functions = get_js_function_list("var obj = {method() {}}")
         self.assertEqual('method', functions[0].name)
 
-    def xtest_object_method_with_computed_name(self):
+    def test_object_method_with_computed_name(self):
         functions = get_js_function_list("var obj = {['computed' + 'Name']() {}}")
         self.assertEqual('computedName', functions[0].name)
 
-    def xtest_object_getter_method(self):
+    def test_object_getter_method(self):
         functions = get_js_function_list("var obj = {get prop() {}}")
         self.assertEqual('get prop', functions[0].name)
 
-    def xtest_object_setter_method(self):
+    def test_object_setter_method(self):
         functions = get_js_function_list("var obj = {set prop(val) {}}")
         self.assertEqual('set prop', functions[0].name)
 
-    def xtest_async_function(self):
+    def test_async_function(self):
         functions = get_js_function_list("async function foo() {}")
         self.assertEqual('foo', functions[0].name)
 
-    def xtest_generator_function(self):
+    def test_generator_function(self):
         functions = get_js_function_list("function* gen() {}")
         self.assertEqual('gen', functions[0].name)
 
-    def xtest_async_generator_function(self):
+    def test_async_generator_function(self):
         functions = get_js_function_list("async function* gen() {}")
         self.assertEqual('gen', functions[0].name)
 
-    def xtest_class_method_decorators(self):
+    def test_class_method_decorators(self):
         code = '''
             class Example {
                 @decorator
@@ -135,7 +135,7 @@ class Test_parser_for_JavaScript(unittest.TestCase):
         functions = get_js_function_list(code)
         self.assertEqual('method', functions[0].name)
 
-    def xtest_nested_object_methods(self):
+    def test_nested_object_methods(self):
         code = '''
             const obj = {
                 outer: {

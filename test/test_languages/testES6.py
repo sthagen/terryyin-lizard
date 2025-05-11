@@ -18,7 +18,7 @@ class Test_tokenizing_ES6(unittest.TestCase):
     def test_dollar_var(self):
         self.check_tokens(["`abc\ndef`"], """`abc\ndef`""")
 
-    def xtest_tokenizing_string_with_formatter(self):
+    def test_tokenizing_string_with_formatter(self):
         self.check_tokens(['""', '${', '1', '}', '"a"' ], r'''"${1}a"''')
 
 class Test_parser_for_JavaScript_ES6(unittest.TestCase):
@@ -109,7 +109,7 @@ class Test_parser_for_JavaScript_ES6(unittest.TestCase):
         """)
         self.assertEqual(['f', 'm'], [f.name for f in functions])
 
-    def xtest_class_with_prop_as_function(self):
+    def test_class_with_prop_as_function(self):
         functions = get_js_function_list("""
             class A {
             f(){}
@@ -119,7 +119,7 @@ class Test_parser_for_JavaScript_ES6(unittest.TestCase):
             get i(){return 1;}
             }
         """)
-        self.assertEqual(['f', 'm', 'g', 'h', 'i'], [f.name for f in functions])
+        self.assertEqual(['f', 'm', 'g', 'h', 'get i'], [f.name for f in functions])
 
     def test_generator_function(self):
         functions = get_js_function_list("""
