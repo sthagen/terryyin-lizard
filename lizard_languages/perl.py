@@ -19,7 +19,8 @@ class PerlReader(CodeReader, ScriptLanguageMixIn):
 
     ext = ['pl', 'pm']
     language_names = ['perl']
-    _conditions = set(['if', 'elsif', 'unless', 'while', 'until', 'for', 'foreach', '&&', '||', '?', ':', 'when', 'given', 'default', 'do'])
+    _conditions = set(['if', 'elsif', 'unless', 'while', 'until', 'for', 'foreach',
+                       '&&', '||', '?', ':', 'when', 'given', 'default', 'do'])
 
     def __init__(self, context):
         super(PerlReader, self).__init__(context)
@@ -55,7 +56,7 @@ class PerlReader(CodeReader, ScriptLanguageMixIn):
             stripped = token.lstrip('#').strip()
             if stripped.startswith('lizard forgives') or stripped.startswith('#lizard forgives'):
                 return '#lizard forgives'  # Return standardized forgiveness comment
-            return stripped  # Return the stripped comment for other cases
+            return stripped  # Return the stripped comment for other case
         return None
 
     @staticmethod
@@ -64,7 +65,8 @@ class PerlReader(CodeReader, ScriptLanguageMixIn):
 
 
 class PerlStates(CodeStateMachine):
-    _conditions = set(['if', 'elsif', 'unless', 'while', 'until', 'for', 'foreach', '&&', '||', '?', ':', 'when', 'given', 'default', 'do'])
+    _conditions = set(['if', 'elsif', 'unless', 'while', 'until', 'for', 'foreach',
+                       '&&', '||', '?', ':', 'when', 'given', 'default', 'do'])
 
     def __init__(self, context):
         super(PerlStates, self).__init__(context)
@@ -90,7 +92,7 @@ class PerlStates(CodeStateMachine):
         elif token == '(':
             self.paren_count += 1
             self.next(self._state_function_call)
-        elif token == '$' or token == 'my' or token == 'our' or token == 'local':
+        elif token in ('$', 'my', 'our', 'local'):
             self.variable_name = ''
             self.next(self._state_variable)
 
@@ -101,7 +103,7 @@ class PerlStates(CodeStateMachine):
 
     def _state_variable(self, token):
         if token == '$':
-            # Skip the $ in variable names
+            # Skip the $ in variable name
             pass
         elif token == '=':
             self.next(self._state_assignment)
@@ -122,10 +124,10 @@ class PerlStates(CodeStateMachine):
         if token == 'sub':
             # Inline anonymous subroutine as argument
             self.anonymous_count += 1
-            full_name = f"<anonymous>"
+            full_name = "<anonymous>"
             if self.package_name:
                 full_name = f"{self.package_name}::{full_name}"
-            
+
             self.context.try_new_function(full_name)
             self.context.confirm_new_function()
             self.next(self._state_anon_brace_search)
@@ -140,13 +142,13 @@ class PerlStates(CodeStateMachine):
         if token == '{':
             self.brace_count = 1
             full_name = '<anonymous>'
-            # Use variable name if available for more readable function names
+            # Use variable name if available for more readable function name
             if self.variable_name:
                 full_name = '$' + self.variable_name
-            
+
             if self.package_name:
                 full_name = f"{self.package_name}::{full_name}"
-            
+
             self.context.try_new_function(full_name)
             self.context.confirm_new_function()
             self.next(self._state_function_body)
@@ -182,7 +184,7 @@ class PerlStates(CodeStateMachine):
         elif token == 'sub':
             # Handle anonymous subroutine like 'callback(sub { ... })'
             self.anonymous_count += 1
-            full_name = f"<anonymous>"
+            full_name = "<anonymous>"
             if self.package_name:
                 full_name = f"{self.package_name}::{full_name}"
             self.context.try_new_function(full_name)
@@ -231,7 +233,7 @@ class PerlStates(CodeStateMachine):
             # Colon part of ternary operator also increases complexity
             self.context.add_condition()
         elif token == 'sub':
-            # Check if it's a nested named subroutine or anonymous
+            # Check if it's a nested named subroutine or anonymou
             self.next(self._state_nested_sub_dec)
         elif token == '(':
             # Track function calls inside function body
@@ -241,11 +243,11 @@ class PerlStates(CodeStateMachine):
     def _state_nested_sub_dec(self, token):
         if token.isspace():
             return
-        elif token == '{':
+        if token == '{':
             # Anonymous sub
             self.brace_count += 1
             self.anonymous_count += 1
-            anon_name = f"<anonymous>"
+            anon_name = "<anonymous>"
             if self.package_name:
                 anon_name = f"{self.package_name}::{anon_name}"
             self.context.add_condition()  # Count sub as a condition
@@ -256,10 +258,7 @@ class PerlStates(CodeStateMachine):
             full_name = nested_func_name
             if self.package_name:
                 full_name = f"{self.package_name}::{nested_func_name}"
-            
-            # Save current function state
-            saved_func_context = self.context
-            
+
             # Create a new function for the nested sub
             self.context.try_new_function(full_name)
             self.context.confirm_new_function()
@@ -295,10 +294,10 @@ class PerlStates(CodeStateMachine):
         if token == 'sub':
             # Inline anonymous subroutine as argument
             self.anonymous_count += 1
-            full_name = f"<anonymous>"
+            full_name = "<anonymous>"
             if self.package_name:
                 full_name = f"{self.package_name}::{full_name}"
-            
+
             self.context.try_new_function(full_name)
             self.context.confirm_new_function()
             self.next(self._state_nested_anon_search)
@@ -327,4 +326,4 @@ class PerlStates(CodeStateMachine):
             self.brace_count -= 1
             if self.brace_count == 1:  # Back to outer function level
                 self.context.end_of_function()
-                self.next(self._state_function_body) 
+                self.next(self._state_function_body)

@@ -34,6 +34,7 @@ class JavaStates(CLikeStates):  # pylint: disable=R0903
     def _state_imp(self, token):
         # When entering a function implementation, set the flag
         self.in_method_body = True
+
         def callback():
             # When exiting the function implementation, clear the flag
             self.in_method_body = False
@@ -105,6 +106,7 @@ class JavaStates(CLikeStates):  # pylint: disable=R0903
             self.in_record_constructor = False
             self._state = self._state_global
 
+
 class JavaFunctionBodyStates(JavaStates):
     def __init__(self, context):
         super(JavaFunctionBodyStates, self).__init__(context)
@@ -132,12 +134,12 @@ class JavaFunctionBodyStates(JavaStates):
             self.handling_dot_class = False
             if token == "class":
                 return  # Skip the 'class' token after a dot
-        
+
         # Special handling for tokens that could confuse the parser
         if self.ignore_tokens:
             self.ignore_tokens = False
             return
-            
+
         if token == "new":
             self.next(self._state_new)
         else:
@@ -145,7 +147,7 @@ class JavaFunctionBodyStates(JavaStates):
             # This ensures that local classes are properly detected
             if self._try_start_a_class(token):
                 return
-            
+
             if self.br_count == 0:
                 self.statemachine_return()
 
@@ -165,6 +167,7 @@ class JavaFunctionBodyStates(JavaStates):
             self.sub_state(JavaClassBodyStates("(anonymous)", False, self.context), callback, token)
             return
         self.next(self._state_global, token)
+
 
 class JavaClassBodyStates(JavaStates):
     def __init__(self, class_name, is_record, context):
