@@ -1,5 +1,5 @@
 import unittest
-from lizard import analyze_file, FileAnalyzer, get_extensions
+from lizard import analyze_file
 from lizard_languages import TSXReader
 
 
@@ -64,6 +64,16 @@ class Test_parser_for_TypeScript_X(unittest.TestCase):
         code = '''
           const MyComponent: React.FC = () => {
             return <div>Hello</div>;
+          }
+        '''
+        functions = get_tsx_function_list(code)
+        self.assertEqual("MyComponent", functions[0].name)
+        self.assertEqual(1, functions[0].cyclomatic_complexity)
+
+    def test_plain_type_annotation(self):
+        code = '''
+          const MyComponent: React.FC = () => {
+            return "hello";
           }
         '''
         functions = get_tsx_function_list(code)
