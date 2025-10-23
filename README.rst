@@ -42,6 +42,7 @@ A list of supported languages:
 -  Perl
 -  Structured Text (St)
 -  R
+-  PL/SQL
 
 By default lizard will search for any source code that it knows and mix
 all the results together. This might not be what you want. You can use
@@ -129,7 +130,7 @@ Options
                         search for all languages it knows. `lizard -l cpp -l java`searches for
                         C++ and Java code. The available languages are: cpp, java, csharp,
                         javascript, python, objectivec, ttcn, ruby, php, swift, scala, GDScript,
-                        go, lua, rust, typescript
+                        go, lua, rust, typescript, plsql
   -V, --verbose         Output in verbose mode (long function name)
   -C CCN, --CCN CCN     Threshold for cyclomatic complexity number warning. The default value is
                         15. Functions with CCN bigger than it will generate warning
@@ -381,4 +382,13 @@ Lizard is also used as a plugin for fastlane to help check code complexity and s
 - `sonar <https://github.com/Backelite/sonar-swift/blob/develop/docs/sonarqube-fastlane.md>`_
 - `European research project FASTEN (Fine-grained Analysis of SofTware Ecosystems as Networks, <http://fasten-project.eu/)>`_
   - `for a quality analyzer <https://github.com/fasten-project/quality-analyzer>`_
+
+How To Contribute
+-----------------
+
+Contributions are welcome. Please refer to the rules and development workflow in:
+
+- https://github.com/terryyin/lizard/tree/master/.cursor/rules
+
+These guidelines are usable by both AI assistants and human contributors — what works for AI works for "I" as well — to keep changes cohesive, simple, and well-tested.
 
