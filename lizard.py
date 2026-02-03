@@ -291,6 +291,7 @@ class FunctionInfo(Nesting):  # pylint: disable=R0902
         self.fan_out = 0
         self.general_fan_out = 0
         self.max_nesting_depth = 0  # Initialize max_nesting_depth to 0
+        self.forgiven_metrics = set()
 
     @property
     def name_in_space(self):
@@ -509,9 +510,15 @@ def comment_counter(tokens, reader):
         if comment is not None:
             for _ in comment.splitlines()[1:]:
                 yield '\n'
-            if comment.strip().startswith("#lizard forgive global"):
+            stripped = comment.strip()
+            if stripped.startswith("#lizard forgive global"):
                 reader.context.forgive_global = True
-            elif comment.strip().startswith("#lizard forgive"):
+            elif stripped.startswith("#lizard forgives("):
+                match = re.search(r'#lizard forgives?\(([^)]*)\)', stripped)
+                if match:
+                    metrics = {m.strip() for m in match.group(1).split(',') if m.strip()}
+                    reader.context.current_function.forgiven_metrics.update(metrics)
+            elif stripped.startswith("#lizard forgive"):
                 reader.context.forgive = True
             if "GENERATED CODE" in comment:
                 return
@@ -597,9 +604,16 @@ def warning_filter(option, module_infos):
     for file_info in module_infos:
         if file_info:
             for fun in file_info.function_list:
-                if any(getattr(fun, attr) > limit for attr, limit in
-                       option.thresholds.items()):
-                    yield fun
+                violated_metrics = [
+                    attr for attr, limit in option.thresholds.items()
+                    if getattr(fun, attr) > limit
+                ]
+                if not violated_metrics:
+                    continue
+                forgiven = getattr(fun, 'forgiven_metrics', set())
+                if all(metric in forgiven for metric in violated_metrics):
+                    continue
+                yield fun
 
 
 def whitelist_filter(warnings, script=None, whitelist=None):
