@@ -1,5 +1,23 @@
 # Change Log
 
+## Unreleased
+
+## 1.21.2
+
+### Bug Fixes
+- Fix nesting depth calculation for C++ `else if` chains (issue #418)
+  - `else if () {}` is now treated as same nesting level as `if`, not as nested
+  - Matches behavior of similar tools and user expectations
+
+## 1.21.1
+
+### Bug Fixes
+- Fix Ruby parser hang on %i[] and %I[] symbol array literals (issue #457)
+- Fix regex in CodeReader to prevent catastrophic backtracking on multiple question marks after less than sign (issue #459)
+
+### Improvements
+- Add script directory to sys.path for running lizard.py from source (issue #460)
+
 ## 1.21.0
 
 ### New Features
