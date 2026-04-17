@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.21.6
+
+### Improvements
+- Release workflow: clarify how PyPI matches trusted publishers (repository owner id, workflow file, environment); add optional `PYPI_API_TOKEN` secret for token-based upload when OIDC is not used
+
+## 1.21.5
+
+### Improvements
+- Release workflow: publish to PyPI without a GitHub Environment so trusted publishing matches PyPI’s default GitHub publisher settings (owner, repository, `release.yml`, empty environment name)
+
+## 1.21.4
+
+### Bug Fixes
+- Fix Java parsing when a field initializer uses a class literal (`Type.class`), which could mis-parse the next method (e.g. `catch` treated as a method name) (issue #469)
+- Fix Java static initializer blocks (`static { ... }`) so control-flow keywords inside the block are not counted as methods (issue #469)
+- Fix Java double-brace anonymous classes (`new Foo() {{ ... }}`) so instance-initializer bodies are not parsed as class methods (issue #469)
+
 ## 1.21.3
 
 ### Bug Fixes
