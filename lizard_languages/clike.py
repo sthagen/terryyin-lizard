@@ -6,6 +6,11 @@ import re
 import itertools
 from .code_reader import CodeStateMachine, CodeReader
 
+# Tokenizer fragment for C++ empty-delimiter raw strings R"(...)" (optional u8/u/U/L
+# prefix). Stops at the first ')"'. Custom delimiters use the normal string rule.
+# See #451, #478; subgroup-free per CodeReader.generate_tokens.
+_CPP_RAW_STRING_TOKEN = r"|(?:u8|u|U|L)?R\"\((?:[^)]|\)(?!\"))*\)\""
+
 
 class CCppCommentsMixin(object):  # pylint: disable=R0903
 
@@ -32,10 +37,7 @@ class CLikeReader(CodeReader, CCppCommentsMixin):
 
     @staticmethod
     def generate_tokens(source_code, addition='', token_class=None):
-        # Add pattern for C++ raw string literals R"delimiter(content)delimiter"
-        # The delimiter can be empty or up to 16 chars (excluding parentheses, backslash, whitespace)
-        # Using a simplified pattern that handles most cases
-        addition = r"|R\"[^(\\]*\((?:[^)]|\)[^\"])*\)[^(\\]*\"" + \
+        addition = _CPP_RAW_STRING_TOKEN + \
                   r"|(?:\d*\.\d+(?:[eE][-+]?\d+)?)" + \
                   r"|(?:\d+\.(?:\d+)?(?:[eE][-+]?\d+)?)" + \
                   addition
